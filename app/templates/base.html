@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Travel Planner{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('trips.index') }}">Travel Planner</a>
+        {% if session.get('utente_id') %}
+            <span>{{ session.get('utente_nome') }}</span>
+            <a href="{{ url_for('explore.search') }}">Esplora</a>
+            <a href="{{ url_for('auth.logout') }}">Esci</a>
+        {% else %}
+            <a href="{{ url_for('auth.login') }}">Accedi</a>
+            <a href="{{ url_for('auth.register') }}">Registrati</a>
+        {% endif %}
+    </nav>
+
+    <main>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="messaggi">
+                    {% for msg in messages %}
+                        <p>{{ msg }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

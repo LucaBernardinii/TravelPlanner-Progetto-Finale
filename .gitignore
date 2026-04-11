@@ -1,0 +1,14 @@
+# Ambiente virtuale
+.venv/
+venv/
+
+# Database
+instance/
+
+# Variabili d'ambiente
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
