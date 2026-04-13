@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}
+    {% if viaggio %}Modifica viaggio{% else %}Nuovo viaggio{% endif %} - Travel Planner
+{% endblock %}
+
+{% block content %}
+<h1>{% if viaggio %}Modifica viaggio{% else %}Nuovo viaggio{% endif %}</h1>
+<form method="POST">
+    <div>
+        <label for="titolo">Titolo</label>
+        <input type="text" id="titolo" name="titolo" value="{{ viaggio.titolo if viaggio else '' }}" required>
+    </div>
+    <div>
+        <label for="data_inizio">Data inizio</label>
+        <input type="date" id="data_inizio" name="data_inizio" value="{{ viaggio.data_inizio if viaggio else '' }}">
+    </div>
+    <div>
+        <label for="data_fine">Data fine</label>
+        <input type="date" id="data_fine" name="data_fine" value="{{ viaggio.data_fine if viaggio else '' }}">
+    </div>
+    <div>
+        <label for="note">Note</label>
+        <textarea id="note" name="note">{{ viaggio.note if viaggio else '' }}</textarea>
+    </div>
+    <button type="submit">Salva</button>
+    <a href="{{ url_for('trips.index') }}">Annulla</a>
+</form>
+{% endblock %}

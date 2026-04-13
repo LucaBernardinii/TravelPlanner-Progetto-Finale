@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}{{ viaggio.titolo }} - Travel Planner{% endblock %}
+
+{% block content %}
+<h1>{{ viaggio.titolo }}</h1>
+<p>{{ viaggio.data_inizio }} - {{ viaggio.data_fine }}</p>
+{% if viaggio.note %}
+    <p>{{ viaggio.note }}</p>
+{% endif %}
+
+<a href="{{ url_for('trips.edit', trip_id=viaggio.id) }}">Modifica</a>
+
+<form method="POST" action="{{ url_for('trips.delete', trip_id=viaggio.id) }}">
+    <button type="submit" onclick="return confirm('Eliminare il viaggio?')">Elimina viaggio</button>
+</form>
+
+<hr>
+<h2>Destinazioni</h2>
+<a href="{{ url_for('trips.add_destination', trip_id=viaggio.id) }}">Aggiungi destinazione</a>
+
+{% if destinazioni %}
+    <ul>
+        {% for dest in destinazioni %}
+        <li>
+            {{ dest.nome }}
+            {% if dest.lat and dest.lng %}
+                - <a href="https://www.openstreetmap.org/?mlat={{ dest.lat }}&mlon={{ dest.lng }}&zoom=12" target="_blank">Vedi su mappa</a>
+            {% endif %}
+            <form method="POST" action="{{ url_for('trips.delete_destination', trip_id=viaggio.id, dest_id=dest.id) }}">
+                <button type="submit">Rimuovi</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Nessuna destinazione aggiunta.</p>
+{% endif %}
+{% endblock %}

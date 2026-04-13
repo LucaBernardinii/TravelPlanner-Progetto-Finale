@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}I miei viaggi - Travel Planner{% endblock %}
+
+{% block content %}
+<h1>I miei viaggi</h1>
+<a href="{{ url_for('trips.new') }}">Nuovo viaggio</a>
+
+{% if viaggi %}
+    <ul>
+        {% for viaggio in viaggi %}
+        <li>
+            <a href="{{ url_for('trips.detail', trip_id=viaggio.id) }}">{{ viaggio.titolo }}</a>
+            <span>{{ viaggio.data_inizio }} - {{ viaggio.data_fine }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Nessun viaggio ancora. <a href="{{ url_for('trips.new') }}">Crea il primo</a>.</p>
+{% endif %}
+{% endblock %}

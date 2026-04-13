@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Aggiungi destinazione - Travel Planner{% endblock %}
+
+{% block content %}
+<h1>Aggiungi destinazione a "{{ viaggio.titolo }}"</h1>
+
+<form method="POST">
+    <div>
+        <label for="query">Cerca citta</label>
+        <input type="text" id="query" name="query" value="{{ query }}" required placeholder="Es. Roma, Parigi...">
+    </div>
+    <input type="hidden" name="azione" value="cerca">
+    <button type="submit">Cerca</button>
+</form>
+
+{% if risultati %}
+    <h2>Risultati</h2>
+    {% for r in risultati %}
+    <form method="POST">
+        <input type="hidden" name="azione" value="conferma">
+        <input type="hidden" name="nome" value="{{ r.display_name }}">
+        <input type="hidden" name="lat" value="{{ r.lat }}">
+        <input type="hidden" name="lng" value="{{ r.lon }}">
+        <p>
+            {{ r.display_name }}
+            <button type="submit">Seleziona</button>
+        </p>
+    </form>
+    {% endfor %}
+{% elif query %}
+    <p>Nessun risultato per "{{ query }}".</p>
+{% endif %}
+
+<a href="{{ url_for('trips.detail', trip_id=viaggio.id) }}">Annulla</a>
+{% endblock %}

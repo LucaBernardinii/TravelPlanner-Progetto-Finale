@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Esplora - Travel Planner{% endblock %}
+
+{% block content %}
+<h1>Esplora</h1>
+<p>Cerca una citta per vedere le previsioni meteo e i punti di interesse.</p>
+
+<form method="POST">
+    <div>
+        <label for="query">Citta</label>
+        <input type="text" id="query" name="query" value="{{ citta }}" required placeholder="Es. Firenze">
+    </div>
+    <div>
+        <label for="tipo_poi">Tipo di POI</label>
+        <select id="tipo_poi" name="tipo_poi">
+            <option value="tourism" {% if tipo_poi == 'tourism' %}selected{% endif %}>Turismo</option>
+            <option value="amenity" {% if tipo_poi == 'amenity' %}selected{% endif %}>Servizi</option>
+            <option value="historic" {% if tipo_poi == 'historic' %}selected{% endif %}>Storico</option>
+            <option value="leisure" {% if tipo_poi == 'leisure' %}selected{% endif %}>Tempo libero</option>
+        </select>
+    </div>
+    <div>
+        <label for="raggio">Raggio di ricerca (metri)</label>
+        <input type="number" id="raggio" name="raggio" value="{{ raggio }}" min="100" max="5000" step="100">
+    </div>
+    <button type="submit">Cerca</button>
+</form>
+
+{% if errore %}
+    <p>{{ errore }}</p>
+{% endif %}
+
+{% if nome_citta %}
+    <hr>
+    <h2>{{ nome_citta }}</h2>
+
+    {% if lat and lng %}
+        <a href="https://www.openstreetmap.org/?mlat={{ lat }}&mlon={{ lng }}&zoom=12" target="_blank">Vedi su OpenStreetMap</a>
+    {% endif %}
+
+    {% if meteo %}
+    <h3>Previsioni meteo - prossimi 7 giorni</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Min (C)</th>
+                <th>Max (C)</th>
+                <th>Pioggia (mm)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for giorno in meteo %}
+            <tr>
+                <td>{{ giorno.data }}</td>
+                <td>{{ giorno.min }}</td>
+                <td>{{ giorno.max }}</td>
+                <td>{{ giorno.pioggia }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if poi %}
+    <h3>Punti di interesse ({{ poi | length }} trovati)</h3>
+    <ul>
+        {% for p in poi %}
+        <li>
+            {{ p.nome }}
+            {% if p.tipo %} - {{ p.tipo }}{% endif %}
+            - <a href="{{ p.osm_link }}" target="_blank">Vedi su mappa</a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% elif citta %}
+        <p>Nessun punto di interesse trovato nel raggio selezionato.</p>
+    {% endif %}
+{% endif %}
+{% endblock %}
