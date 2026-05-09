@@ -1,0 +1,174 @@
+/* --- Reset base per layout fullscreen --- */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- Navbar --- */
+nav {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid #ccc;
+    background: white;
+    flex-shrink: 0;
+    z-index: 2000;
+}
+
+nav a { text-decoration: none; }
+
+/* --- Main: si espande per riempire lo spazio disponibile --- */
+main {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+/* --- Messaggi flash --- */
+.messaggi {
+    position: absolute;
+    top: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #f0f0f0;
+    padding: 0.5rem 1rem;
+    border-left: 3px solid #555;
+    z-index: 3000;
+    white-space: nowrap;
+}
+
+/* --- Pagine normali (form, liste) --- */
+.pagina-normale {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+    overflow-y: auto;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+/* --- Layout mappa fullscreen con pannello overlay --- */
+.pagina-mappa {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+#mappa {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.pannello {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 340px;
+    height: 100%;
+    background: white;
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 1rem;
+    box-sizing: border-box;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+}
+
+/* --- Elementi pannello --- */
+.istruzione {
+    color: #777;
+    font-size: 0.85rem;
+    margin: 0.4rem 0;
+}
+
+.azioni-viaggio {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0.5rem 0;
+}
+
+.risultato-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 0.3rem;
+    padding: 0.3rem 0.5rem;
+    cursor: pointer;
+    background: #f5f5f5;
+    border: 1px solid #ccc;
+}
+
+.risultato-btn:hover { background: #e8e8e8; }
+
+.lista-dest {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.lista-dest li {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid #eee;
+    font-size: 0.85rem;
+}
+
+/* --- Form generici --- */
+form div { margin-bottom: 0.75rem; }
+
+label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+input[type="number"],
+textarea,
+select {
+    width: 100%;
+    padding: 0.4rem;
+    box-sizing: border-box;
+}
+
+button {
+    padding: 0.4rem 1rem;
+    cursor: pointer;
+}
+
+/* --- Tabelle --- */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 0.3rem 0.5rem;
+    text-align: left;
+}
+
+th { background: #f0f0f0; }
+
+hr {
+    margin: 1rem 0;
+    border: none;
+    border-top: 1px solid #ddd;
+}
