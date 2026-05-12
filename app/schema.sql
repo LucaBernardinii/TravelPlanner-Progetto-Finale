@@ -23,5 +23,15 @@ CREATE TABLE IF NOT EXISTS destinazioni (
     nome TEXT NOT NULL,
     lat REAL,
     lng REAL,
+    data_arrivo TEXT,
+    data_partenza TEXT,
     FOREIGN KEY (viaggio_id) REFERENCES viaggi(id)
+);
+
+CREATE TABLE IF NOT EXISTS attivita (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    destinazione_id INTEGER NOT NULL,
+    nome TEXT NOT NULL,
+    tipo TEXT DEFAULT 'generale',
+    FOREIGN KEY (destinazione_id) REFERENCES destinazioni(id)
 );

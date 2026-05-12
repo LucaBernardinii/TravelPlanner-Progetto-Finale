@@ -1,41 +1,93 @@
 // map.js — mappa interattiva per la pagina dettaglio viaggio
-// Gestisce: visualizzazione destinazioni, ricerca citta, click sulla mappa
+// Gestisce: marcatori destinazioni, percorsi OSRM, ricerca citta, click su mappa
 
 var mappa;
 var marcatoreTemp = null;
+var layerPercorsi = null;
+
 
 // --- Inizializzazione ---
 
 (function inizializza() {
     mappa = L.map('mappa');
-
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: 'OpenStreetMap'
     }).addTo(mappa);
 
-    // Aggiunge i marcatori delle destinazioni gia salvate
+    layerPercorsi = L.layerGroup().addTo(mappa);
+
+    // Aggiunge i marcatori delle destinazioni salvate
     var marcatori = [];
     DESTINAZIONI.forEach(function(dest) {
         if (dest.lat && dest.lng) {
+            var popup = dest.nome;
+            if (dest.data_arrivo || dest.data_partenza) {
+                popup += '<br><small>' +
+                    (dest.data_arrivo || '') +
+                    (dest.data_arrivo && dest.data_partenza ? ' - ' : '') +
+                    (dest.data_partenza || '') +
+                    '</small>';
+            }
             var m = L.marker([dest.lat, dest.lng])
                 .addTo(mappa)
-                .bindPopup(dest.nome);
+                .bindPopup(popup);
             marcatori.push(m);
         }
     });
 
-    // Centra la mappa sulle destinazioni esistenti o sull'Italia
     if (marcatori.length > 0) {
         mappa.fitBounds(L.featureGroup(marcatori).getBounds().pad(0.3));
     } else {
         mappa.setView([41.9, 12.5], 5);
     }
 
-    // Click sulla mappa: reverse geocoding e precompilazione form
+    // Percorsi OSRM tra destinazioni consecutive
+    caricaPercorsi();
+
+    // Click sulla mappa: reverse geocoding
     mappa.on('click', function(e) {
         reverseGeocode(e.latlng.lat, e.latlng.lng);
     });
 })();
+
+
+// --- Percorsi OSRM tra destinazioni consecutive ---
+
+function caricaPercorsi() {
+    for (var i = 0; i < DESTINAZIONI.length - 1; i++) {
+        (function(d1, d2) {
+            if (!d1.lat || !d1.lng || !d2.lat || !d2.lng) {
+                aggiornaDistanza(d1.id, d2.id, null);
+                return;
+            }
+            fetch('/api/route?lat1=' + d1.lat + '&lng1=' + d1.lng +
+                  '&lat2=' + d2.lat + '&lng2=' + d2.lng)
+                .then(function(r) { return r.json(); })
+                .then(function(dati) {
+                    if (dati.geometry) {
+                        // Disegna il percorso sulla mappa
+                        L.geoJSON(dati.geometry, {
+                            style: { color: '#3388ff', weight: 3, opacity: 0.7 }
+                        }).addTo(layerPercorsi);
+                    }
+                    aggiornaDistanza(d1.id, d2.id, dati);
+                })
+                .catch(function() {
+                    aggiornaDistanza(d1.id, d2.id, null);
+                });
+        })(DESTINAZIONI[i], DESTINAZIONI[i + 1]);
+    }
+}
+
+function aggiornaDistanza(id1, id2, dati) {
+    var el = document.getElementById('dist-' + id1 + '-' + id2);
+    if (!el) return;
+    if (!dati || dati.error) {
+        el.textContent = 'Percorso non disponibile';
+    } else {
+        el.textContent = dati.distance_km + ' km — ' + dati.duration_min + ' min';
+    }
+}
 
 
 // --- Ricerca citta ---
@@ -70,7 +122,7 @@ function cercaCitta() {
 }
 
 
-// --- Reverse geocoding (click su mappa) ---
+// --- Reverse geocoding (click sulla mappa) ---
 
 function reverseGeocode(lat, lng) {
     fetch('/api/reverse?lat=' + lat + '&lng=' + lng)
@@ -82,24 +134,18 @@ function reverseGeocode(lat, lng) {
 }
 
 
-// --- Selezione destinazione (da ricerca o da click) ---
+// --- Selezione destinazione ---
 
 function selezionaDestinazione(nome, lat, lng) {
-    // Rimuove il marcatore temporaneo precedente
-    if (marcatoreTemp) {
-        mappa.removeLayer(marcatoreTemp);
-    }
+    if (marcatoreTemp) mappa.removeLayer(marcatoreTemp);
 
     marcatoreTemp = L.marker([lat, lng]).addTo(mappa).bindPopup(nome).openPopup();
     mappa.setView([lat, lng], 10);
 
-    // Precompila i campi nascosti del form
     document.getElementById('nome').value = nome;
     document.getElementById('lat').value = lat;
     document.getElementById('lng').value = lng;
     document.getElementById('btn-aggiungi').disabled = false;
-
-    // Mostra l'anteprima del nome nel pannello
-    var anteprima = document.getElementById('anteprima-dest');
-    anteprima.innerHTML = '<p><strong>Selezionata:</strong> ' + nome + '</p>';
+    document.getElementById('anteprima-dest').innerHTML =
+        '<p><strong>Selezionata:</strong> ' + nome + '</p>';
 }

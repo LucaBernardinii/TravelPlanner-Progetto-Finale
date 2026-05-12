@@ -1,11 +1,22 @@
 from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, session, abort, flash
 
-from app.models import Viaggio, Destinazione
+from app.models import Viaggio, Destinazione, Attivita
 from app.repositories.trip_repository import TripRepository
 from app.repositories.destination_repository import DestinationRepository
+from app.repositories.attivita_repository import AttivitaRepository
 
 trips_bp = Blueprint('trips', __name__)
+
+# Etichette e colori per i tipi di attivita (usati nel template)
+TIPI_ATTIVITA = {
+    'hotel':      {'label': 'H', 'nome': 'Hotel'},
+    'ristorante': {'label': 'R', 'nome': 'Ristorante'},
+    'museo':      {'label': 'M', 'nome': 'Museo'},
+    'attrazione': {'label': 'A', 'nome': 'Attrazione'},
+    'trasporto':  {'label': 'T', 'nome': 'Trasporto'},
+    'generale':   {'label': 'G', 'nome': 'Generale'},
+}
 
 
 def login_required(f):
@@ -18,10 +29,10 @@ def login_required(f):
 
 
 @trips_bp.route('/')
-@login_required
 def index():
-    repo = TripRepository()
-    viaggi = repo.get_all_by_user(session['utente_id'])
+    viaggi = []
+    if 'utente_id' in session:
+        viaggi = TripRepository().get_all_by_user(session['utente_id'])
     return render_template('trips/index.html', viaggi=viaggi)
 
 
@@ -31,11 +42,9 @@ def new():
     if request.method == 'POST':
         data_inizio = request.form.get('data_inizio', '')
         data_fine = request.form.get('data_fine', '')
-
         if data_fine and data_inizio and data_fine < data_inizio:
             flash('La data di fine non puo essere precedente alla data di inizio.')
             return render_template('trips/form.html', viaggio=None)
-
         viaggio = Viaggio(
             utente_id=session['utente_id'],
             titolo=request.form['titolo'],
@@ -54,17 +63,32 @@ def detail(trip_id):
     viaggio = TripRepository().get_by_id(trip_id)
     if not viaggio or viaggio.utente_id != session['utente_id']:
         abort(403)
-    destinazioni = DestinationRepository().get_by_trip(trip_id)
 
-    # Converte gli oggetti in dizionari per passarli come JSON al template
-    destinazioni_json = [
-        {'id': d.id, 'nome': d.nome, 'lat': d.lat, 'lng': d.lng}
-        for d in destinazioni
-    ]
+    destinazioni = DestinationRepository().get_by_trip(trip_id)
+    att_repo = AttivitaRepository()
+
+    # Costruisce la struttura dati completa per template e JS
+    destinazioni_dati = []
+    for d in destinazioni:
+        attivita = att_repo.get_by_destination(d.id)
+        destinazioni_dati.append({
+            'id': d.id,
+            'nome': d.nome,
+            'lat': d.lat,
+            'lng': d.lng,
+            'data_arrivo': d.data_arrivo,
+            'data_partenza': d.data_partenza,
+            'attivita': [
+                {'id': a.id, 'nome': a.nome, 'tipo': a.tipo}
+                for a in attivita
+            ]
+        })
+
     return render_template('trips/detail.html',
                            viaggio=viaggio,
                            destinazioni=destinazioni,
-                           destinazioni_json=destinazioni_json)
+                           destinazioni_dati=destinazioni_dati,
+                           tipi_attivita=TIPI_ATTIVITA)
 
 
 @trips_bp.route('/trips/<int:trip_id>/edit', methods=['GET', 'POST'])
@@ -77,11 +101,9 @@ def edit(trip_id):
     if request.method == 'POST':
         data_inizio = request.form.get('data_inizio', '')
         data_fine = request.form.get('data_fine', '')
-
         if data_fine and data_inizio and data_fine < data_inizio:
             flash('La data di fine non puo essere precedente alla data di inizio.')
             return render_template('trips/form.html', viaggio=viaggio)
-
         viaggio.titolo = request.form['titolo']
         viaggio.data_inizio = data_inizio
         viaggio.data_fine = data_fine
@@ -114,10 +136,13 @@ def add_destination(trip_id):
         viaggio_id=trip_id,
         nome=request.form['nome'],
         lat=float(lat) if lat else None,
-        lng=float(lng) if lng else None
+        lng=float(lng) if lng else None,
+        data_arrivo=request.form.get('data_arrivo') or None,
+        data_partenza=request.form.get('data_partenza') or None,
     )
     DestinationRepository().add(dest)
-    return redirect(url_for('trips.detail', trip_id=trip_id))
+    next_url = request.form.get('next') or url_for('trips.detail', trip_id=trip_id)
+    return redirect(next_url)
 
 
 @trips_bp.route('/trips/<int:trip_id>/destinazioni/<int:dest_id>/delete', methods=['POST'])
@@ -127,4 +152,30 @@ def delete_destination(trip_id, dest_id):
     if not viaggio or viaggio.utente_id != session['utente_id']:
         abort(403)
     DestinationRepository().delete(dest_id)
+    return redirect(url_for('trips.detail', trip_id=trip_id))
+
+
+@trips_bp.route('/trips/<int:trip_id>/destinazioni/<int:dest_id>/attivita/add', methods=['POST'])
+@login_required
+def add_activity(trip_id, dest_id):
+    viaggio = TripRepository().get_by_id(trip_id)
+    if not viaggio or viaggio.utente_id != session['utente_id']:
+        abort(403)
+    att = Attivita(
+        destinazione_id=dest_id,
+        nome=request.form['nome'],
+        tipo=request.form.get('tipo', 'generale')
+    )
+    AttivitaRepository().add(att)
+    return redirect(url_for('trips.detail', trip_id=trip_id))
+
+
+@trips_bp.route('/trips/<int:trip_id>/destinazioni/<int:dest_id>/attivita/<int:att_id>/delete',
+                methods=['POST'])
+@login_required
+def delete_activity(trip_id, dest_id, att_id):
+    viaggio = TripRepository().get_by_id(trip_id)
+    if not viaggio or viaggio.utente_id != session['utente_id']:
+        abort(403)
+    AttivitaRepository().delete(att_id)
     return redirect(url_for('trips.detail', trip_id=trip_id))

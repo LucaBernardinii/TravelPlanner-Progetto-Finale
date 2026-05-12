@@ -19,9 +19,20 @@ class Viaggio:
 
 
 class Destinazione:
-    def __init__(self, viaggio_id, nome, lat=None, lng=None, id=None):
+    def __init__(self, viaggio_id, nome, lat=None, lng=None,
+                 data_arrivo=None, data_partenza=None, id=None):
         self.id = id
         self.viaggio_id = viaggio_id
         self.nome = nome
         self.lat = lat
         self.lng = lng
+        self.data_arrivo = data_arrivo
+        self.data_partenza = data_partenza
+
+
+class Attivita:
+    def __init__(self, destinazione_id, nome, tipo='generale', id=None):
+        self.id = id
+        self.destinazione_id = destinazione_id
+        self.nome = nome
+        self.tipo = tipo

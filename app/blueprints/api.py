@@ -7,12 +7,12 @@ NOMINATIM_SEARCH = 'https://nominatim.openstreetmap.org/search'
 NOMINATIM_REVERSE = 'https://nominatim.openstreetmap.org/reverse'
 OPEN_METEO = 'https://api.open-meteo.com/v1/forecast'
 OVERPASS = 'https://overpass-api.de/api/interpreter'
+OSRM = 'https://router.project-osrm.org/route/v1/driving'
 HEADERS = {'User-Agent': 'TravelPlannerApp/1.0 (progetto-scuola)'}
 
 
 @api_bp.route('/geocode')
 def geocode():
-    """Converte il nome di una citta in coordinate lat/lng."""
     q = request.args.get('q', '')
     resp = requests.get(NOMINATIM_SEARCH, params={
         'q': q, 'format': 'json', 'limit': 5
@@ -22,7 +22,6 @@ def geocode():
 
 @api_bp.route('/reverse')
 def reverse():
-    """Converte coordinate lat/lng nel nome del luogo (reverse geocoding)."""
     lat = request.args.get('lat')
     lng = request.args.get('lng')
     resp = requests.get(NOMINATIM_REVERSE, params={
@@ -33,13 +32,18 @@ def reverse():
 
 @api_bp.route('/weather')
 def weather():
-    """Restituisce le previsioni meteo a 7 giorni tramite Open-Meteo."""
     lat = request.args.get('lat')
     lng = request.args.get('lng')
     resp = requests.get(OPEN_METEO, params={
         'latitude': lat,
         'longitude': lng,
-        'daily': 'temperature_2m_max,temperature_2m_min,precipitation_sum',
+        'daily': ','.join([
+            'temperature_2m_max',
+            'temperature_2m_min',
+            'precipitation_sum',
+            'sunrise',
+            'sunset',
+        ]),
         'forecast_days': 7,
         'timezone': 'auto'
     }, timeout=5)
@@ -48,11 +52,63 @@ def weather():
 
 @api_bp.route('/poi')
 def poi():
-    """Cerca punti di interesse tramite Overpass API (dati OpenStreetMap)."""
     lat = request.args.get('lat')
     lng = request.args.get('lng')
     tipo = request.args.get('tipo', 'tourism')
-    raggio = request.args.get('raggio', 1000)
-    query = f'[out:json];node["{tipo}"](around:{raggio},{lat},{lng});out 20;'
-    resp = requests.post(OVERPASS, data={'data': query}, timeout=10)
-    return jsonify(resp.json())
+    raggio = request.args.get('raggio', '1000')
+
+    query = (
+        '[out:json][timeout:25];'
+        '('
+        f'  node["{tipo}"](around:{raggio},{lat},{lng});'
+        f'  way["{tipo}"](around:{raggio},{lat},{lng});'
+        ');'
+        'out center 30;'
+    )
+    try:
+        resp = requests.post(OVERPASS, data={'data': query}, timeout=30)
+        resp.raise_for_status()
+        if not resp.text.strip():
+            return jsonify({'elements': [], 'error': 'Risposta vuota da Overpass'}), 200
+        return jsonify(resp.json())
+    except requests.exceptions.Timeout:
+        return jsonify({'elements': [], 'error': 'Timeout Overpass'}), 200
+    except requests.exceptions.HTTPError as e:
+        return jsonify({'elements': [], 'error': f'HTTP {e.response.status_code}'}), 200
+    except ValueError:
+        return jsonify({'elements': [], 'error': 'Risposta non valida'}), 200
+
+
+@api_bp.route('/route')
+def route():
+    """
+    Calcola il percorso stradale tra due punti usando OSRM (gratuito, senza chiave).
+    Ritorna distanza in km, durata in minuti e geometria GeoJSON per la mappa.
+    """
+    lat1 = request.args.get('lat1')
+    lng1 = request.args.get('lng1')
+    lat2 = request.args.get('lat2')
+    lng2 = request.args.get('lng2')
+
+    url = f'{OSRM}/{lng1},{lat1};{lng2},{lat2}'
+    try:
+        resp = requests.get(url, params={
+            'overview': 'full',
+            'geometries': 'geojson'
+        }, timeout=10)
+        resp.raise_for_status()
+        dati = resp.json()
+
+        if dati.get('code') != 'Ok' or not dati.get('routes'):
+            return jsonify({'error': 'Percorso non trovato'}), 200
+
+        r = dati['routes'][0]
+        return jsonify({
+            'distance_km': round(r['distance'] / 1000, 1),
+            'duration_min': round(r['duration'] / 60),
+            'geometry': r['geometry']
+        })
+    except requests.exceptions.Timeout:
+        return jsonify({'error': 'Timeout OSRM'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 200

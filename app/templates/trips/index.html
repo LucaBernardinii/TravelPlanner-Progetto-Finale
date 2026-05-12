@@ -4,19 +4,25 @@
 {% block content %}
 <div class="pagina-normale">
     <h1>I miei viaggi</h1>
-    <a href="{{ url_for('trips.new') }}">Nuovo viaggio</a>
 
-    {% if viaggi %}
-        <ul>
-            {% for viaggio in viaggi %}
-            <li>
-                <a href="{{ url_for('trips.detail', trip_id=viaggio.id) }}">{{ viaggio.titolo }}</a>
-                <span> — {{ viaggio.data_inizio }} / {{ viaggio.data_fine }}</span>
-            </li>
-            {% endfor %}
-        </ul>
+    {% if session.get('utente_id') %}
+        <a href="{{ url_for('trips.new') }}">Nuovo viaggio</a>
+        {% if viaggi %}
+            <ul>
+                {% for viaggio in viaggi %}
+                <li>
+                    <a href="{{ url_for('trips.detail', trip_id=viaggio.id) }}">{{ viaggio.titolo }}</a>
+                    <span> — {{ viaggio.data_inizio }} / {{ viaggio.data_fine }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Nessun viaggio ancora. <a href="{{ url_for('trips.new') }}">Crea il primo</a>.</p>
+        {% endif %}
     {% else %}
-        <p>Nessun viaggio ancora. <a href="{{ url_for('trips.new') }}">Crea il primo</a>.</p>
+        <p>Accedi per vedere e gestire i tuoi viaggi.</p>
+        <a href="{{ url_for('auth.login') }}">Accedi</a> oppure
+        <a href="{{ url_for('auth.register') }}">Registrati</a>
     {% endif %}
 </div>
 {% endblock %}

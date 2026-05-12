@@ -12,9 +12,7 @@
     <div class="pannello">
         <h2>{{ viaggio.titolo }}</h2>
         <p>{{ viaggio.data_inizio }} — {{ viaggio.data_fine }}</p>
-        {% if viaggio.note %}
-            <p>{{ viaggio.note }}</p>
-        {% endif %}
+        {% if viaggio.note %}<p>{{ viaggio.note }}</p>{% endif %}
 
         <div class="azioni-viaggio">
             <a href="{{ url_for('trips.edit', trip_id=viaggio.id) }}">Modifica</a>
@@ -24,39 +22,111 @@
         </div>
 
         <hr>
-        <h3>Aggiungi destinazione</h3>
 
-        <div>
-            <input type="text" id="cerca-citta" placeholder="Cerca una citta...">
-            <button type="button" onclick="cercaCitta()">Cerca</button>
-        </div>
-        <div id="risultati-ricerca"></div>
+        {# ---- AGGIUNGI DESTINAZIONE ---- #}
+        <details class="sezione-aggiungi">
+            <summary>Aggiungi destinazione</summary>
+            <div class="form-aggiungi-dest">
+                <div>
+                    <input type="text" id="cerca-citta" placeholder="Cerca una citta...">
+                    <button type="button" onclick="cercaCitta()">Cerca</button>
+                </div>
+                <div id="risultati-ricerca"></div>
+                <p class="istruzione">oppure clicca direttamente sulla mappa</p>
 
-        <p class="istruzione">oppure clicca direttamente sulla mappa</p>
-
-        <form method="POST" action="{{ url_for('trips.add_destination', trip_id=viaggio.id) }}">
-            <input type="hidden" id="nome" name="nome">
-            <input type="hidden" id="lat" name="lat">
-            <input type="hidden" id="lng" name="lng">
-            <div id="anteprima-dest"></div>
-            <button type="submit" id="btn-aggiungi" disabled>Aggiungi destinazione</button>
-        </form>
+                <form method="POST" action="{{ url_for('trips.add_destination', trip_id=viaggio.id) }}">
+                    <input type="hidden" id="nome" name="nome">
+                    <input type="hidden" id="lat" name="lat">
+                    <input type="hidden" id="lng" name="lng">
+                    <div id="anteprima-dest"></div>
+                    <div>
+                        <label for="data_arrivo">Data arrivo</label>
+                        <input type="date" id="data_arrivo" name="data_arrivo"
+                               min="{{ viaggio.data_inizio }}" max="{{ viaggio.data_fine }}">
+                    </div>
+                    <div>
+                        <label for="data_partenza">Data partenza</label>
+                        <input type="date" id="data_partenza" name="data_partenza"
+                               min="{{ viaggio.data_inizio }}" max="{{ viaggio.data_fine }}">
+                    </div>
+                    <button type="submit" id="btn-aggiungi" disabled>Aggiungi</button>
+                </form>
+            </div>
+        </details>
 
         <hr>
+
+        {# ---- DESTINAZIONI SALVATE ---- #}
         <h3>Destinazioni salvate</h3>
-        {% if destinazioni %}
-            <ul class="lista-dest">
-                {% for dest in destinazioni %}
-                <li>
-                    <span>{{ dest.nome | truncate(45, true, '...') }}</span>
-                    <form method="POST" action="{{ url_for('trips.delete_destination', trip_id=viaggio.id, dest_id=dest.id) }}">
-                        <button type="submit" title="Rimuovi">X</button>
+
+        {% if destinazioni_dati %}
+            {% for dest in destinazioni_dati %}
+
+            <div class="dest-card">
+                {# Intestazione destinazione: date, nome, elimina #}
+                <div class="dest-header">
+                    <div class="dest-date">
+                        {% if dest.data_arrivo %}{{ dest.data_arrivo }}{% endif %}
+                        {% if dest.data_arrivo and dest.data_partenza %} - {% endif %}
+                        {% if dest.data_partenza %}{{ dest.data_partenza }}{% endif %}
+                    </div>
+                    <a href="{{ url_for('explore.search', citta=dest.nome) }}"
+                       class="dest-nome" title="Apri in Esplora">
+                        {{ dest.nome | truncate(30, true, '...') }}
+                    </a>
+                    <form method="POST"
+                          action="{{ url_for('trips.delete_destination', trip_id=viaggio.id, dest_id=dest.id) }}">
+                        <button type="submit" class="btn-elimina" title="Rimuovi destinazione">X</button>
                     </form>
-                </li>
-                {% endfor %}
-            </ul>
+                </div>
+
+                {# Lista attivita #}
+                {% if dest.attivita %}
+                <ul class="lista-attivita">
+                    {% for att in dest.attivita %}
+                    <li class="attivita-voce">
+                        <span class="badge-tipo badge-{{ att.tipo }}"
+                              title="{{ tipi_attivita[att.tipo].nome }}">
+                            {{ tipi_attivita[att.tipo].label }}
+                        </span>
+                        {{ att.nome }}
+                        <form method="POST" action="{{ url_for('trips.delete_activity',
+                              trip_id=viaggio.id, dest_id=dest.id, att_id=att.id) }}">
+                            <button type="submit" class="btn-elimina-att" title="Rimuovi">x</button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+
+                {# Form aggiunta attivita (toggle nativo HTML) #}
+                <details class="aggiungi-att">
+                    <summary>Aggiungi attivita</summary>
+                    <form method="POST" action="{{ url_for('trips.add_activity',
+                          trip_id=viaggio.id, dest_id=dest.id) }}">
+                        <input type="text" name="nome" placeholder="Nome attivita" required>
+                        <select name="tipo">
+                            {% for tipo, info in tipi_attivita.items() %}
+                            <option value="{{ tipo }}">{{ info.nome }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit">Aggiungi</button>
+                    </form>
+                </details>
+            </div>
+
+            {# Distanza tra questa destinazione e la successiva #}
+            {% if not loop.last %}
+            <div class="distanza-tratta"
+                 id="dist-{{ dest.id }}-{{ destinazioni_dati[loop.index].id }}">
+                Calcolo percorso...
+            </div>
+            {% endif %}
+
+            {% endfor %}
+
         {% else %}
-            <p>Nessuna destinazione ancora. Cerca o clicca sulla mappa.</p>
+            <p>Nessuna destinazione. Usa il pannello sopra o clicca sulla mappa.</p>
         {% endif %}
 
         <a href="{{ url_for('trips.index') }}">Torna ai viaggi</a>
@@ -67,7 +137,7 @@
 {% block scripts %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    var DESTINAZIONI = {{ destinazioni_json | tojson }};
+    var DESTINAZIONI = {{ destinazioni_dati | tojson }};
 </script>
 <script src="{{ url_for('static', filename='js/map.js') }}"></script>
 {% endblock %}
