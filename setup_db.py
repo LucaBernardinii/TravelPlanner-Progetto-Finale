@@ -12,18 +12,20 @@ def setup():
     with open(SCHEMA_PATH, 'r') as f:
         conn.executescript(f.read())
 
-    # Migrazione per database esistenti: aggiunge le colonne nuove se mancanti
+    # Migrazione per database esistenti
     cursor = conn.cursor()
     migrazioni = [
         'ALTER TABLE destinazioni ADD COLUMN data_arrivo TEXT',
         'ALTER TABLE destinazioni ADD COLUMN data_partenza TEXT',
+        'ALTER TABLE attivita ADD COLUMN lat REAL',
+        'ALTER TABLE attivita ADD COLUMN lng REAL',
     ]
     for sql in migrazioni:
         try:
             cursor.execute(sql)
             conn.commit()
         except Exception:
-            pass  # La colonna esiste gia
+            pass
 
     conn.close()
     print('Database inizializzato:', DB_PATH)

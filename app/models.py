@@ -31,8 +31,10 @@ class Destinazione:
 
 
 class Attivita:
-    def __init__(self, destinazione_id, nome, tipo='generale', id=None):
+    def __init__(self, destinazione_id, nome, tipo='generale', lat=None, lng=None, id=None):
         self.id = id
         self.destinazione_id = destinazione_id
         self.nome = nome
         self.tipo = tipo
+        self.lat = lat
+        self.lng = lng

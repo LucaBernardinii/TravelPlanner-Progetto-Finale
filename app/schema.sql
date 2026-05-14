@@ -33,5 +33,7 @@ CREATE TABLE IF NOT EXISTS attivita (
     destinazione_id INTEGER NOT NULL,
     nome TEXT NOT NULL,
     tipo TEXT DEFAULT 'generale',
+    lat REAL,
+    lng REAL,
     FOREIGN KEY (destinazione_id) REFERENCES destinazioni(id)
 );

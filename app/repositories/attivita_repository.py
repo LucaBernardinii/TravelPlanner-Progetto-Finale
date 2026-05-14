@@ -14,15 +14,15 @@ class AttivitaRepository:
         )
         rows = cursor.fetchall()
         conn.close()
-        # colonne: id(0) destinazione_id(1) nome(2) tipo(3)
-        return [Attivita(row[1], row[2], row[3], row[0]) for row in rows]
+        # colonne: id(0) destinazione_id(1) nome(2) tipo(3) lat(4) lng(5)
+        return [Attivita(row[1], row[2], row[3], row[4], row[5], row[0]) for row in rows]
 
     def add(self, attivita):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute(
-            'INSERT INTO attivita (destinazione_id, nome, tipo) VALUES (?, ?, ?)',
-            (attivita.destinazione_id, attivita.nome, attivita.tipo)
+            'INSERT INTO attivita (destinazione_id, nome, tipo, lat, lng) VALUES (?, ?, ?, ?, ?)',
+            (attivita.destinazione_id, attivita.nome, attivita.tipo, attivita.lat, attivita.lng)
         )
         conn.commit()
         conn.close()

@@ -24,7 +24,7 @@
         <hr>
 
         {# ---- AGGIUNGI DESTINAZIONE ---- #}
-        <details class="sezione-aggiungi">
+        <details class="sezione-aggiungi" id="form-dest-wrapper">
             <summary>Aggiungi destinazione</summary>
             <div class="form-aggiungi-dest">
                 <div>
@@ -32,7 +32,7 @@
                     <button type="button" onclick="cercaCitta()">Cerca</button>
                 </div>
                 <div id="risultati-ricerca"></div>
-                <p class="istruzione">oppure clicca direttamente sulla mappa</p>
+                <p class="istruzione">oppure clicca sulla mappa</p>
 
                 <form method="POST" action="{{ url_for('trips.add_destination', trip_id=viaggio.id) }}">
                     <input type="hidden" id="nome" name="nome">
@@ -56,14 +56,15 @@
 
         <hr>
 
-        {# ---- DESTINAZIONI SALVATE ---- #}
+        {# Indicatore modalita mappa #}
+        <p class="istruzione" id="stato-mappa">Clicca sulla mappa per aggiungere una destinazione</p>
+
         <h3>Destinazioni salvate</h3>
 
         {% if destinazioni_dati %}
             {% for dest in destinazioni_dati %}
 
             <div class="dest-card">
-                {# Intestazione destinazione: date, nome, elimina #}
                 <div class="dest-header">
                     <div class="dest-date">
                         {% if dest.data_arrivo %}{{ dest.data_arrivo }}{% endif %}
@@ -76,11 +77,10 @@
                     </a>
                     <form method="POST"
                           action="{{ url_for('trips.delete_destination', trip_id=viaggio.id, dest_id=dest.id) }}">
-                        <button type="submit" class="btn-elimina" title="Rimuovi destinazione">X</button>
+                        <button type="submit" class="btn-elimina" title="Rimuovi">X</button>
                     </form>
                 </div>
 
-                {# Lista attivita #}
                 {% if dest.attivita %}
                 <ul class="lista-attivita">
                     {% for att in dest.attivita %}
@@ -99,8 +99,8 @@
                 </ul>
                 {% endif %}
 
-                {# Form aggiunta attivita (toggle nativo HTML) #}
-                <details class="aggiungi-att">
+                {# Form aggiunta attivita — data-dest-id usato da map.js per il cambio modalita #}
+                <details class="aggiungi-att" data-dest-id="{{ dest.id }}">
                     <summary>Aggiungi attivita</summary>
                     <form method="POST" action="{{ url_for('trips.add_activity',
                           trip_id=viaggio.id, dest_id=dest.id) }}">
@@ -110,12 +110,16 @@
                             <option value="{{ tipo }}">{{ info.nome }}</option>
                             {% endfor %}
                         </select>
+                        <input type="hidden" name="lat" id="att-lat-{{ dest.id }}">
+                        <input type="hidden" name="lng" id="att-lng-{{ dest.id }}">
+                        <p class="istruzione" id="att-pos-{{ dest.id }}">
+                            Posizione: clicca sulla mappa (opzionale)
+                        </p>
                         <button type="submit">Aggiungi</button>
                     </form>
                 </details>
             </div>
 
-            {# Distanza tra questa destinazione e la successiva #}
             {% if not loop.last %}
             <div class="distanza-tratta"
                  id="dist-{{ dest.id }}-{{ destinazioni_dati[loop.index].id }}">
@@ -126,7 +130,7 @@
             {% endfor %}
 
         {% else %}
-            <p>Nessuna destinazione. Usa il pannello sopra o clicca sulla mappa.</p>
+            <p>Nessuna destinazione. Aprilo sopra o clicca sulla mappa.</p>
         {% endif %}
 
         <a href="{{ url_for('trips.index') }}">Torna ai viaggi</a>

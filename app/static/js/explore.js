@@ -2,7 +2,6 @@
 
 var mappa;
 var marcatoreCorrente = null;
-var layerPOI = null;
 var latCorrente = null;
 var lngCorrente = null;
 var nomeCittaCorrente = '';
@@ -31,6 +30,7 @@ var nomeCittaCorrente = '';
         });
     }
 
+    // Autostart se c'e un parametro ?citta= nell'URL
     var params = new URLSearchParams(window.location.search);
     var citta = params.get('citta');
     if (citta) {
@@ -72,15 +72,13 @@ function impostaLocalita(nomeCompleto, lat, lng) {
     nomeCittaCorrente = nomeCompleto;
 
     mappa.setView([lat, lng], 12);
+
     if (marcatoreCorrente) mappa.removeLayer(marcatoreCorrente);
     marcatoreCorrente = L.marker([lat, lng]).addTo(mappa)
         .bindPopup(nomeCompleto).openPopup();
 
     document.getElementById('nome-citta').textContent = nomeCompleto;
     document.getElementById('sezione-risultati').style.display = 'block';
-
-    if (layerPOI) { mappa.removeLayer(layerPOI); layerPOI = null; }
-    document.getElementById('lista-poi').innerHTML = '';
 
     caricaMeteo(lat, lng);
 }
@@ -100,12 +98,8 @@ function caricaMeteo(lat, lng) {
                 return;
             }
             for (var i = 0; i < g.time.length; i++) {
-                // Alba e tramonto arrivano come "2026-05-10T06:23" — estrae solo l'orario
-                var alba = g.sunrise && g.sunrise[i]
-                    ? g.sunrise[i].split('T')[1] : '-';
-                var tramonto = g.sunset && g.sunset[i]
-                    ? g.sunset[i].split('T')[1] : '-';
-
+                var alba = g.sunrise && g.sunrise[i] ? g.sunrise[i].split('T')[1] : '-';
+                var tramonto = g.sunset && g.sunset[i] ? g.sunset[i].split('T')[1] : '-';
                 var tr = document.createElement('tr');
                 tr.innerHTML =
                     '<td>' + g.time[i] + '</td>' +
@@ -119,53 +113,5 @@ function caricaMeteo(lat, lng) {
         })
         .catch(function() {
             tbody.innerHTML = '<tr><td colspan="6">Errore caricamento meteo.</td></tr>';
-        });
-}
-
-
-function cercaPOI() {
-    if (!latCorrente) { alert('Cerca prima una citta.'); return; }
-
-    var tipo = document.getElementById('tipo-poi').value;
-    var raggio = document.getElementById('raggio-poi').value;
-    var lista = document.getElementById('lista-poi');
-    lista.innerHTML = '<li>Ricerca in corso...</li>';
-
-    if (layerPOI) mappa.removeLayer(layerPOI);
-    layerPOI = L.layerGroup().addTo(mappa);
-
-    fetch('/api/poi?lat=' + latCorrente + '&lng=' + lngCorrente +
-          '&tipo=' + tipo + '&raggio=' + raggio)
-        .then(function(r) { return r.json(); })
-        .then(function(dati) {
-            lista.innerHTML = '';
-            var elementi = dati.elements || [];
-            if (!elementi.length) {
-                lista.innerHTML = '<li>Nessun risultato nel raggio selezionato.</li>';
-                return;
-            }
-            elementi.forEach(function(el) {
-                var nome = (el.tags && el.tags.name) ? el.tags.name : 'Senza nome';
-                var elLat = el.lat || (el.center && el.center.lat);
-                var elLng = el.lon || (el.center && el.center.lon);
-
-                var li = document.createElement('li');
-                li.className = 'poi-voce';
-                li.textContent = nome;
-
-                if (elLat && elLng) {
-                    var marcatore = L.marker([elLat, elLng])
-                        .addTo(layerPOI).bindPopup(nome);
-                    li.style.cursor = 'pointer';
-                    li.addEventListener('click', function() {
-                        mappa.setView([elLat, elLng], 16);
-                        marcatore.openPopup();
-                    });
-                }
-                lista.appendChild(li);
-            });
-        })
-        .catch(function() {
-            lista.innerHTML = '<li>Errore durante la ricerca.</li>';
         });
 }

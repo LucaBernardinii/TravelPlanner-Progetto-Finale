@@ -8,7 +8,6 @@ from app.repositories.attivita_repository import AttivitaRepository
 
 trips_bp = Blueprint('trips', __name__)
 
-# Etichette e colori per i tipi di attivita (usati nel template)
 TIPI_ATTIVITA = {
     'hotel':      {'label': 'H', 'nome': 'Hotel'},
     'ristorante': {'label': 'R', 'nome': 'Ristorante'},
@@ -67,7 +66,6 @@ def detail(trip_id):
     destinazioni = DestinationRepository().get_by_trip(trip_id)
     att_repo = AttivitaRepository()
 
-    # Costruisce la struttura dati completa per template e JS
     destinazioni_dati = []
     for d in destinazioni:
         attivita = att_repo.get_by_destination(d.id)
@@ -79,7 +77,7 @@ def detail(trip_id):
             'data_arrivo': d.data_arrivo,
             'data_partenza': d.data_partenza,
             'attivita': [
-                {'id': a.id, 'nome': a.nome, 'tipo': a.tipo}
+                {'id': a.id, 'nome': a.nome, 'tipo': a.tipo, 'lat': a.lat, 'lng': a.lng}
                 for a in attivita
             ]
         })
@@ -161,10 +159,14 @@ def add_activity(trip_id, dest_id):
     viaggio = TripRepository().get_by_id(trip_id)
     if not viaggio or viaggio.utente_id != session['utente_id']:
         abort(403)
+    lat = request.form.get('lat') or None
+    lng = request.form.get('lng') or None
     att = Attivita(
         destinazione_id=dest_id,
         nome=request.form['nome'],
-        tipo=request.form.get('tipo', 'generale')
+        tipo=request.form.get('tipo', 'generale'),
+        lat=float(lat) if lat else None,
+        lng=float(lng) if lng else None,
     )
     AttivitaRepository().add(att)
     return redirect(url_for('trips.detail', trip_id=trip_id))

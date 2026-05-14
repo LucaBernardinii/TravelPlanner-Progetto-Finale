@@ -6,7 +6,6 @@ api_bp = Blueprint('api', __name__, url_prefix='/api')
 NOMINATIM_SEARCH = 'https://nominatim.openstreetmap.org/search'
 NOMINATIM_REVERSE = 'https://nominatim.openstreetmap.org/reverse'
 OPEN_METEO = 'https://api.open-meteo.com/v1/forecast'
-OVERPASS = 'https://overpass-api.de/api/interpreter'
 OSRM = 'https://router.project-osrm.org/route/v1/driving'
 HEADERS = {'User-Agent': 'TravelPlannerApp/1.0 (progetto-scuola)'}
 
@@ -37,54 +36,15 @@ def weather():
     resp = requests.get(OPEN_METEO, params={
         'latitude': lat,
         'longitude': lng,
-        'daily': ','.join([
-            'temperature_2m_max',
-            'temperature_2m_min',
-            'precipitation_sum',
-            'sunrise',
-            'sunset',
-        ]),
+        'daily': 'temperature_2m_max,temperature_2m_min,precipitation_sum,sunrise,sunset',
         'forecast_days': 7,
         'timezone': 'auto'
     }, timeout=5)
     return jsonify(resp.json())
 
 
-@api_bp.route('/poi')
-def poi():
-    lat = request.args.get('lat')
-    lng = request.args.get('lng')
-    tipo = request.args.get('tipo', 'tourism')
-    raggio = request.args.get('raggio', '1000')
-
-    query = (
-        '[out:json][timeout:25];'
-        '('
-        f'  node["{tipo}"](around:{raggio},{lat},{lng});'
-        f'  way["{tipo}"](around:{raggio},{lat},{lng});'
-        ');'
-        'out center 30;'
-    )
-    try:
-        resp = requests.post(OVERPASS, data={'data': query}, timeout=30)
-        resp.raise_for_status()
-        if not resp.text.strip():
-            return jsonify({'elements': [], 'error': 'Risposta vuota da Overpass'}), 200
-        return jsonify(resp.json())
-    except requests.exceptions.Timeout:
-        return jsonify({'elements': [], 'error': 'Timeout Overpass'}), 200
-    except requests.exceptions.HTTPError as e:
-        return jsonify({'elements': [], 'error': f'HTTP {e.response.status_code}'}), 200
-    except ValueError:
-        return jsonify({'elements': [], 'error': 'Risposta non valida'}), 200
-
-
 @api_bp.route('/route')
 def route():
-    """
-    Calcola il percorso stradale tra due punti usando OSRM (gratuito, senza chiave).
-    Ritorna distanza in km, durata in minuti e geometria GeoJSON per la mappa.
-    """
     lat1 = request.args.get('lat1')
     lng1 = request.args.get('lng1')
     lat2 = request.args.get('lat2')
