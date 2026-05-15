@@ -5,6 +5,7 @@ from app.models import Viaggio, Destinazione, Attivita
 from app.repositories.trip_repository import TripRepository
 from app.repositories.destination_repository import DestinationRepository
 from app.repositories.attivita_repository import AttivitaRepository
+from app.repositories.user_repository import UserRepository
 
 trips_bp = Blueprint('trips', __name__)
 
@@ -29,10 +30,29 @@ def login_required(f):
 
 @trips_bp.route('/')
 def index():
-    viaggi = []
-    if 'utente_id' in session:
-        viaggi = TripRepository().get_all_by_user(session['utente_id'])
-    return render_template('trips/index.html', viaggi=viaggi)
+    # Viaggi dell'utente autenticato
+    viaggi_personali = []
+    utente_id = session.get('utente_id')
+    if utente_id:
+        viaggi_personali = TripRepository().get_all_by_user(utente_id)
+
+    # Viaggi condivisi di altri utenti (visibili a tutti, inclusi i visitatori)
+    tutti_condivisi = TripRepository().get_all_shared()
+    user_repo = UserRepository()
+    viaggi_condivisi = []
+    for v in tutti_condivisi:
+        # Esclude i propri viaggi: l'utente li vede gia nella sezione personale
+        if v.utente_id == utente_id:
+            continue
+        proprietario = user_repo.get_by_id(v.utente_id)
+        viaggi_condivisi.append({
+            'viaggio': v,
+            'nome_utente': proprietario.nome if proprietario else 'Utente'
+        })
+
+    return render_template('trips/index.html',
+                           viaggi=viaggi_personali,
+                           viaggi_condivisi=viaggi_condivisi)
 
 
 @trips_bp.route('/trips/new', methods=['GET', 'POST'])
@@ -57,15 +77,20 @@ def new():
 
 
 @trips_bp.route('/trips/<int:trip_id>')
-@login_required
 def detail(trip_id):
     viaggio = TripRepository().get_by_id(trip_id)
-    if not viaggio or viaggio.utente_id != session['utente_id']:
+    if not viaggio:
+        abort(404)
+
+    utente_id = session.get('utente_id')
+    e_proprietario = (utente_id is not None) and (utente_id == viaggio.utente_id)
+
+    # Accesso consentito solo se: proprietario, oppure viaggio condiviso
+    if not e_proprietario and not viaggio.condiviso:
         abort(403)
 
     destinazioni = DestinationRepository().get_by_trip(trip_id)
     att_repo = AttivitaRepository()
-
     destinazioni_dati = []
     for d in destinazioni:
         attivita = att_repo.get_by_destination(d.id)
@@ -82,11 +107,17 @@ def detail(trip_id):
             ]
         })
 
+    # Nome del proprietario (mostrato quando si visualizza un viaggio altrui)
+    proprietario = UserRepository().get_by_id(viaggio.utente_id)
+    nome_proprietario = proprietario.nome if proprietario else 'Utente'
+
     return render_template('trips/detail.html',
                            viaggio=viaggio,
                            destinazioni=destinazioni,
                            destinazioni_dati=destinazioni_dati,
-                           tipi_attivita=TIPI_ATTIVITA)
+                           tipi_attivita=TIPI_ATTIVITA,
+                           e_proprietario=e_proprietario,
+                           nome_proprietario=nome_proprietario)
 
 
 @trips_bp.route('/trips/<int:trip_id>/edit', methods=['GET', 'POST'])
@@ -120,6 +151,18 @@ def delete(trip_id):
         abort(403)
     repo.delete(trip_id)
     return redirect(url_for('trips.index'))
+
+
+@trips_bp.route('/trips/<int:trip_id>/share', methods=['POST'])
+@login_required
+def toggle_share(trip_id):
+    repo = TripRepository()
+    viaggio = repo.get_by_id(trip_id)
+    if not viaggio or viaggio.utente_id != session['utente_id']:
+        abort(403)
+    nuovo_stato = 0 if viaggio.condiviso else 1
+    repo.set_condiviso(trip_id, nuovo_stato)
+    return redirect(url_for('trips.detail', trip_id=trip_id))
 
 
 @trips_bp.route('/trips/<int:trip_id>/destinazioni/add', methods=['POST'])

@@ -80,6 +80,7 @@ function creaIcona(lettera, classe) {
 
     // Click sulla mappa: comportamento in base alla modalita corrente
     mappa.on('click', function(e) {
+        if (!E_PROPRIETARIO) return; // sola lettura: ignora click
         if (modoMappa === 'attivita' && destIdAttivo) {
             impostaPosizioneAttivita(e.latlng.lat, e.latlng.lng, destIdAttivo);
         } else {

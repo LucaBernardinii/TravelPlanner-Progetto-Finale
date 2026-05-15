@@ -1,28 +1,56 @@
 {% extends 'base.html' %}
-{% block title %}I miei viaggi - Travel Planner{% endblock %}
+{% block title %}Viaggi - Travel Planner{% endblock %}
 
 {% block content %}
 <div class="pagina-normale">
-    <h1>I miei viaggi</h1>
 
     {% if session.get('utente_id') %}
-        <a href="{{ url_for('trips.new') }}">Nuovo viaggio</a>
-        {% if viaggi %}
-            <ul>
-                {% for viaggio in viaggi %}
-                <li>
-                    <a href="{{ url_for('trips.detail', trip_id=viaggio.id) }}">{{ viaggio.titolo }}</a>
-                    <span> — {{ viaggio.data_inizio }} / {{ viaggio.data_fine }}</span>
-                </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>Nessun viaggio ancora. <a href="{{ url_for('trips.new') }}">Crea il primo</a>.</p>
-        {% endif %}
+    <h1>I miei viaggi</h1>
+    <a href="{{ url_for('trips.new') }}">Nuovo viaggio</a>
+
+    {% if viaggi %}
+        <ul class="lista-viaggi">
+            {% for viaggio in viaggi %}
+            <li>
+                <a href="{{ url_for('trips.detail', trip_id=viaggio.id) }}">
+                    {{ viaggio.titolo }}
+                </a>
+                <span class="viaggio-date">{{ viaggio.data_inizio }} / {{ viaggio.data_fine }}</span>
+                {% if viaggio.condiviso %}
+                    <span class="badge-condiviso">Condiviso</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
     {% else %}
-        <p>Accedi per vedere e gestire i tuoi viaggi.</p>
-        <a href="{{ url_for('auth.login') }}">Accedi</a> oppure
-        <a href="{{ url_for('auth.register') }}">Registrati</a>
+        <p>Nessun viaggio ancora. <a href="{{ url_for('trips.new') }}">Crea il primo</a>.</p>
     {% endif %}
+
+    <hr>
+    {% endif %}
+
+    <h2>Viaggi condivisi</h2>
+
+    {% if viaggi_condivisi %}
+        <ul class="lista-viaggi">
+            {% for item in viaggi_condivisi %}
+            <li>
+                <a href="{{ url_for('trips.detail', trip_id=item.viaggio.id) }}">
+                    {{ item.viaggio.titolo }}
+                </a>
+                <span class="viaggio-date">
+                    {{ item.viaggio.data_inizio }} / {{ item.viaggio.data_fine }}
+                </span>
+                <span class="viaggio-autore">di {{ item.nome_utente }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Nessun viaggio condiviso al momento.</p>
+        {% if not session.get('utente_id') %}
+            <p><a href="{{ url_for('auth.login') }}">Accedi</a> per creare e condividere i tuoi viaggi.</p>
+        {% endif %}
+    {% endif %}
+
 </div>
 {% endblock %}

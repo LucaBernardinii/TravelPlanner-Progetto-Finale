@@ -12,13 +12,13 @@ def setup():
     with open(SCHEMA_PATH, 'r') as f:
         conn.executescript(f.read())
 
-    # Migrazione per database esistenti
     cursor = conn.cursor()
     migrazioni = [
         'ALTER TABLE destinazioni ADD COLUMN data_arrivo TEXT',
         'ALTER TABLE destinazioni ADD COLUMN data_partenza TEXT',
         'ALTER TABLE attivita ADD COLUMN lat REAL',
         'ALTER TABLE attivita ADD COLUMN lng REAL',
+        'ALTER TABLE viaggi ADD COLUMN condiviso INTEGER DEFAULT 0',
     ]
     for sql in migrazioni:
         try:

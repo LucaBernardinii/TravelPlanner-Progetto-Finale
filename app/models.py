@@ -8,13 +8,15 @@ class Utente:
 
 
 class Viaggio:
-    def __init__(self, utente_id, titolo, data_inizio, data_fine, note=None, data_creazione=None, id=None):
+    def __init__(self, utente_id, titolo, data_inizio, data_fine,
+                 note=None, condiviso=0, data_creazione=None, id=None):
         self.id = id
         self.utente_id = utente_id
         self.titolo = titolo
         self.data_inizio = data_inizio
         self.data_fine = data_fine
         self.note = note
+        self.condiviso = condiviso
         self.data_creazione = data_creazione
 
 

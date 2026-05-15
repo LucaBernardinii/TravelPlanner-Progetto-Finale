@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS viaggi (
     data_inizio TEXT,
     data_fine TEXT,
     note TEXT,
+    condiviso INTEGER DEFAULT 0,
     data_creazione DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (utente_id) REFERENCES utenti(id)
 );

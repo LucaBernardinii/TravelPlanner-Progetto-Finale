@@ -11,19 +11,38 @@
 
     <div class="pannello">
         <h2>{{ viaggio.titolo }}</h2>
+
+        {% if not e_proprietario %}
+        <p class="istruzione">Viaggio di <strong>{{ nome_proprietario }}</strong> — sola lettura</p>
+        {% endif %}
+
         <p>{{ viaggio.data_inizio }} — {{ viaggio.data_fine }}</p>
         {% if viaggio.note %}<p>{{ viaggio.note }}</p>{% endif %}
 
+        {% if e_proprietario %}
         <div class="azioni-viaggio">
             <a href="{{ url_for('trips.edit', trip_id=viaggio.id) }}">Modifica</a>
             <form method="POST" action="{{ url_for('trips.delete', trip_id=viaggio.id) }}">
                 <button type="submit" onclick="return confirm('Eliminare il viaggio?')">Elimina</button>
             </form>
+            <form method="POST" action="{{ url_for('trips.toggle_share', trip_id=viaggio.id) }}">
+                {% if viaggio.condiviso %}
+                    <button type="submit">Rendi privato</button>
+                {% else %}
+                    <button type="submit">Condividi</button>
+                {% endif %}
+            </form>
         </div>
+        {% endif %}
+
+        {% if viaggio.condiviso %}
+            <p class="badge-condiviso">Condiviso pubblicamente</p>
+        {% endif %}
 
         <hr>
 
-        {# ---- AGGIUNGI DESTINAZIONE ---- #}
+        {# ---- AGGIUNGI DESTINAZIONE (solo proprietario) ---- #}
+        {% if e_proprietario %}
         <details class="sezione-aggiungi" id="form-dest-wrapper">
             <summary>Aggiungi destinazione</summary>
             <div class="form-aggiungi-dest">
@@ -33,7 +52,6 @@
                 </div>
                 <div id="risultati-ricerca"></div>
                 <p class="istruzione">oppure clicca sulla mappa</p>
-
                 <form method="POST" action="{{ url_for('trips.add_destination', trip_id=viaggio.id) }}">
                     <input type="hidden" id="nome" name="nome">
                     <input type="hidden" id="lat" name="lat">
@@ -53,11 +71,16 @@
                 </form>
             </div>
         </details>
-
         <hr>
+        {% endif %}
 
-        {# Indicatore modalita mappa #}
-        <p class="istruzione" id="stato-mappa">Clicca sulla mappa per aggiungere una destinazione</p>
+        <p class="istruzione" id="stato-mappa">
+            {% if e_proprietario %}
+            Clicca sulla mappa per aggiungere una destinazione
+            {% else %}
+            Clicca sulla mappa per esplorare
+            {% endif %}
+        </p>
 
         <h3>Destinazioni salvate</h3>
 
@@ -75,10 +98,12 @@
                        class="dest-nome" title="Apri in Esplora">
                         {{ dest.nome | truncate(30, true, '...') }}
                     </a>
+                    {% if e_proprietario %}
                     <form method="POST"
                           action="{{ url_for('trips.delete_destination', trip_id=viaggio.id, dest_id=dest.id) }}">
                         <button type="submit" class="btn-elimina" title="Rimuovi">X</button>
                     </form>
+                    {% endif %}
                 </div>
 
                 {% if dest.attivita %}
@@ -90,16 +115,18 @@
                             {{ tipi_attivita[att.tipo].label }}
                         </span>
                         {{ att.nome }}
+                        {% if e_proprietario %}
                         <form method="POST" action="{{ url_for('trips.delete_activity',
                               trip_id=viaggio.id, dest_id=dest.id, att_id=att.id) }}">
                             <button type="submit" class="btn-elimina-att" title="Rimuovi">x</button>
                         </form>
+                        {% endif %}
                     </li>
                     {% endfor %}
                 </ul>
                 {% endif %}
 
-                {# Form aggiunta attivita — data-dest-id usato da map.js per il cambio modalita #}
+                {% if e_proprietario %}
                 <details class="aggiungi-att" data-dest-id="{{ dest.id }}">
                     <summary>Aggiungi attivita</summary>
                     <form method="POST" action="{{ url_for('trips.add_activity',
@@ -118,6 +145,7 @@
                         <button type="submit">Aggiungi</button>
                     </form>
                 </details>
+                {% endif %}
             </div>
 
             {% if not loop.last %}
@@ -130,7 +158,7 @@
             {% endfor %}
 
         {% else %}
-            <p>Nessuna destinazione. Aprilo sopra o clicca sulla mappa.</p>
+            <p>Nessuna destinazione ancora.</p>
         {% endif %}
 
         <a href="{{ url_for('trips.index') }}">Torna ai viaggi</a>
@@ -142,6 +170,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     var DESTINAZIONI = {{ destinazioni_dati | tojson }};
+    var E_PROPRIETARIO = {{ 'true' if e_proprietario else 'false' }};
 </script>
 <script src="{{ url_for('static', filename='js/map.js') }}"></script>
 {% endblock %}
