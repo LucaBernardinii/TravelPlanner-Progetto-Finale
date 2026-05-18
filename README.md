@@ -230,6 +230,12 @@ Luca Bernardini - luca.bernardini@studenti.isissgobetti.it
 
 TravelPlanner is developed as a final project for the fifth year of Computer Science studies.
 
+## Other Projects
+
+[MMDb](https://github.com/LucaBernardinii/MMDb_progetto_natale.git) - Web App inspired by Letterboxd
+
+[Briscola Remastered](https://github.com/LucaBernardinii/Briscola_Remastered_progetto_di_natale.git) - Command Line game inspired by the traditional italian card game
+
 ## Contributing
 
 Contributions are welcome. Feel free to fork this repository and submit pull requests for any improvements.
