@@ -1,3 +1,41 @@
+/* --- Gestione Variabili e Temi --- */
+:root {
+    /* Tema Chiaro */
+    --bg-main: #fcfaf6;          /* Crema chiarissimo */
+    --bg-page: #f5f2eb;          /* Grigio/crema di fondo */
+    --text-main: #242424;        /* Antracite scuro */
+    --text-muted: #686868;       /* Grigio neutro */
+    --accent: #3a6047;           /* Verde salvia scuro per bottoni */
+    --accent-hover: #294432;     /* Variante hover */
+    
+    /* Liquid Glass Config (Light) */
+    --glass-bg: rgba(255, 255, 255, 0.45);
+    --glass-panel: rgba(255, 255, 255, 0.75);
+    --glass-card: rgba(255, 255, 255, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-shadow: rgba(140, 130, 115, 0.12);
+    --input-bg: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="dark"] {
+    /* Tema Scuro */
+    --bg-main: #121212;          /* Nero profondo */
+    --bg-page: #1a1a1a;          /* Grigio scuro opaco */
+    --text-main: #f5f5f5;        /* Bianco sporco */
+    --text-muted: #a0a0a0;       /* Grigio chiaro soft */
+    --accent: #528563;           /* Verde desaturato per visibilità */
+    --accent-hover: #659c77;     /* Variante hover */
+    
+    /* Liquid Glass Config (Dark) */
+    --glass-bg: rgba(20, 20, 20, 0.55);
+    --glass-panel: rgba(28, 28, 28, 0.82);
+    --glass-card: rgba(36, 36, 36, 0.5);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: rgba(0, 0, 0, 0.4);
+    --input-bg: rgba(45, 45, 45, 0.6);
+}
+
+/* --- Reset e Layout Base --- */
 html, body {
     height: 100%;
     margin: 0;
@@ -5,53 +43,178 @@ html, body {
 }
 
 body {
-    font-family: sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     display: flex;
     flex-direction: column;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    transition: background-color 0.4s cubic-bezier(0.25, 1, 0.5, 1), color 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    -webkit-font-smoothing: antialiased;
 }
 
-nav {
+/* --- Nuova Barra di Navigazione Superiore --- */
+.navbar {
     display: flex;
-    gap: 1rem;
+    justify-content: space-between;
     align-items: center;
-    padding: 0.6rem 1rem;
-    border-bottom: 1px solid #ccc;
-    background: white;
+    padding: 0.75rem 2rem;
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--glass-border);
     flex-shrink: 0;
     z-index: 2000;
+    box-shadow: 0 4px 20px var(--glass-shadow);
+    transition: background 0.4s, border-color 0.4s;
 }
 
-nav a { text-decoration: none; }
+.nav-brand a {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-main);
+    text-decoration: none;
+    letter-spacing: -0.5px;
+}
 
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.nav-item {
+    color: var(--text-main);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.nav-item:hover {
+    color: var(--accent);
+    background-color: var(--glass-border);
+}
+
+/* --- Icona Avatar Utente e Dropdown --- */
+.user-dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+.avatar-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: 1px solid var(--glass-border);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-btn:hover {
+    transform: scale(1.06);
+    background-color: var(--accent-hover);
+    box-shadow: 0 0 10px var(--accent);
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 12px);
+    background: var(--glass-panel);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    min-width: 200px;
+    box-shadow: 0 8px 32px var(--glass-shadow);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    z-index: 2500;
+    overflow: hidden;
+    padding: 0.5rem 0;
+}
+
+.dropdown-menu.show {
+    display: block;
+    animation: dropdownEntrance 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes dropdownEntrance {
+    from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.dropdown-info {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 0.25rem;
+}
+
+.user-name {
+    display: block;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.dropdown-action {
+    display: block;
+    width: 100%;
+    padding: 0.65rem 1rem;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--text-main);
+    font-size: 0.9rem;
+    text-decoration: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-action:hover {
+    background-color: var(--accent);
+    color: #ffffff;
+}
+
+.logout-btn {
+    border-top: 1px solid var(--glass-border);
+    color: #cc4141;
+    margin-top: 0.25rem;
+}
+
+.logout-btn:hover {
+    background-color: #bb3535;
+    color: #ffffff;
+}
+
+/* --- Contenitore Principale e Pagine standard --- */
 main {
     flex: 1;
     overflow: hidden;
     position: relative;
+    background-color: var(--bg-page);
 }
 
-.messaggi {
-    position: absolute;
-    top: 0.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #f0f0f0;
-    padding: 0.5rem 1rem;
-    border-left: 3px solid #555;
-    z-index: 3000;
-    white-space: nowrap;
-}
-
-/* --- Pagine normali --- */
 .pagina-normale {
-    max-width: 900px;
+    max-width: 850px;
     margin: 0 auto;
-    padding: 1.5rem 1rem;
+    padding: 2.5rem 1.5rem;
     overflow-y: auto;
     height: 100%;
     box-sizing: border-box;
 }
 
-/* --- Layout mappa fullscreen --- */
+/* --- Layout Mappa e Pannello Laterale --- */
 .pagina-mappa {
     width: 100%;
     height: 100%;
@@ -68,207 +231,31 @@ main {
     position: absolute;
     top: 0;
     left: 0;
-    width: 340px;
+    width: 350px;
     height: 100%;
-    background: white;
+    background: var(--glass-panel);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     z-index: 1000;
     overflow-y: auto;
-    padding: 1rem;
+    padding: 1.5rem;
     box-sizing: border-box;
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 4px 0 24px var(--glass-shadow);
+    border-right: 1px solid var(--glass-border);
+    transition: background-color 0.4s, border-color 0.4s;
 }
 
-/* --- Elementi generici pannello --- */
-.istruzione {
-    color: #777;
-    font-size: 0.82rem;
-    margin: 0.3rem 0;
+/* --- Moduli, Campi di Testo ed Elementi di Input --- */
+form div {
+    margin-bottom: 1rem;
 }
-
-.azioni-viaggio {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    margin: 0.4rem 0;
-}
-
-/* --- Sezione aggiungi destinazione --- */
-.sezione-aggiungi summary {
-    cursor: pointer;
-    font-weight: bold;
-    padding: 0.3rem 0;
-}
-
-.form-aggiungi-dest {
-    margin-top: 0.5rem;
-}
-
-.risultato-btn {
-    display: block;
-    width: 100%;
-    text-align: left;
-    margin-bottom: 0.3rem;
-    padding: 0.3rem 0.5rem;
-    cursor: pointer;
-    background: #f5f5f5;
-    border: 1px solid #ccc;
-    font-size: 0.83rem;
-}
-
-.risultato-btn:hover { background: #e8e8e8; }
-
-/* --- Scheda destinazione --- */
-.dest-card {
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 0.5rem 0.6rem;
-    margin-bottom: 0.3rem;
-    background: #fafafa;
-}
-
-.dest-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.4rem;
-    flex-wrap: wrap;
-}
-
-.dest-date {
-    font-size: 0.75rem;
-    color: #555;
-    white-space: nowrap;
-    min-width: 80px;
-    padding-top: 2px;
-}
-
-.dest-nome {
-    flex: 1;
-    font-weight: bold;
-    font-size: 0.9rem;
-    word-break: break-word;
-}
-
-.btn-elimina {
-    background: none;
-    border: none;
-    color: #aaa;
-    cursor: pointer;
-    font-size: 0.8rem;
-    padding: 0 2px;
-    line-height: 1;
-}
-
-.btn-elimina:hover { color: #c00; }
-
-/* --- Lista attivita --- */
-.lista-attivita {
-    list-style: none;
-    padding: 0;
-    margin: 0.4rem 0 0.3rem 0.5rem;
-}
-
-.attivita-voce {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.83rem;
-    padding: 0.2rem 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.attivita-voce:last-child { border-bottom: none; }
-
-.btn-elimina-att {
-    background: none;
-    border: none;
-    color: #ccc;
-    cursor: pointer;
-    font-size: 0.75rem;
-    margin-left: auto;
-    padding: 0;
-    line-height: 1;
-}
-
-.btn-elimina-att:hover { color: #c00; }
-
-/* --- Badge tipo attivita (nel pannello) --- */
-.badge-tipo {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 18px;
-    height: 18px;
-    border-radius: 3px;
-    font-size: 10px;
-    font-weight: bold;
-    color: white;
-    flex-shrink: 0;
-}
-
-.badge-hotel      { background: #2196F3; }
-.badge-ristorante { background: #FF5722; }
-.badge-museo      { background: #9C27B0; }
-.badge-attrazione { background: #FF9800; }
-.badge-trasporto  { background: #607D8B; }
-.badge-generale   { background: #4CAF50; }
-
-/* --- Marcatori attivita sulla mappa (Leaflet divIcon) ---
-   Forma quadrata per differenziarsi dai marcatori citta (goccia Leaflet) --- */
-.marker-att {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 3px !important;
-    font-weight: bold !important;
-    font-size: 12px !important;
-    color: white !important;
-    border: 2px solid rgba(0,0,0,0.2) !important;
-    box-sizing: border-box !important;
-}
-
-.marker-hotel      { background: #2196F3; }
-.marker-ristorante { background: #FF5722; }
-.marker-museo      { background: #9C27B0; }
-.marker-attrazione { background: #FF9800; }
-.marker-trasporto  { background: #607D8B; }
-.marker-generale   { background: #4CAF50; }
-.marker-temp       { background: #333; }
-
-/* --- Form aggiungi attivita --- */
-.aggiungi-att {
-    margin-top: 0.4rem;
-}
-
-.aggiungi-att summary {
-    cursor: pointer;
-    font-size: 0.82rem;
-    color: #555;
-}
-
-.aggiungi-att form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    margin-top: 0.3rem;
-}
-
-/* --- Distanza tra destinazioni --- */
-.distanza-tratta {
-    text-align: center;
-    font-size: 0.82rem;
-    color: #3388ff;
-    padding: 0.3rem 0;
-    font-weight: bold;
-}
-
-/* --- Form generici --- */
-form div { margin-bottom: 0.6rem; }
 
 label {
     display: block;
-    margin-bottom: 0.2rem;
-    font-weight: bold;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
     font-size: 0.85rem;
+    color: var(--text-main);
 }
 
 input[type="text"],
@@ -279,68 +266,415 @@ input[type="number"],
 textarea,
 select {
     width: 100%;
-    padding: 0.35rem;
+    padding: 0.6rem 0.8rem;
     box-sizing: border-box;
     font-size: 0.9rem;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    background: var(--input-bg);
+    color: var(--text-main);
+    transition: all 0.2s ease;
 }
 
-button { padding: 0.35rem 0.8rem; cursor: pointer; }
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(82, 133, 99, 0.25);
+    background: var(--bg-main);
+}
 
-/* --- Tabelle --- */
+/* --- Pulsanti e Animazioni Hover --- */
+button, .nav-auth-btn {
+    padding: 0.55rem 1.25rem;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    background: var(--accent);
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+button:hover, .nav-auth-btn:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+button:active, .nav-auth-btn:active {
+    transform: translateY(0);
+}
+
+/* Bottoni secondari o di annullamento */
+.azioni-viaggio a, form a, button[type="button"] {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-card);
+    color: var(--text-main);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.azioni-viaggio a:hover, form a:hover, button[type="button"]:hover {
+    background: var(--glass-border);
+    color: var(--text-main);
+    transform: translateY(-1px);
+}
+
+/* --- Pulsanti Universali e Classi di Azione --- */
+button, 
+.nav-auth-btn, 
+.btn-primary, 
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.55rem 1.25rem;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* Pulsante Principale (Solido) */
+button[type="submit"],
+.btn-primary {
+    background: var(--accent);
+    color: #ffffff !important;
+}
+
+button[type="submit"]:hover,
+.btn-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Pulsante Secondario / Annulla (Glass Effect) */
+button[type="button"],
+.btn-secondary,
+.azioni-viaggio a, 
+form a {
+    background: var(--glass-card);
+    color: var(--text-main) !important;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+button[type="button"]:hover,
+.btn-secondary:hover,
+.azioni-viaggio a:hover, 
+form a:hover {
+    background: var(--glass-border);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--glass-shadow);
+}
+
+button:active, 
+.btn-primary:active, 
+.btn-secondary:active {
+    transform: translateY(0);
+}
+
+/* Allineamento per i gruppi di pulsanti nei form */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 1.5rem;
+}
+
+/* Contenitore per stati vuoti (es. nessun viaggio) */
+.empty-state {
+    text-align: center;
+    padding: 2.5rem 1.5rem;
+    background: var(--glass-card);
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    margin: 1.5rem 0;
+}
+
+.empty-state p {
+    margin: 0 0 1.2rem 0;
+    color: var(--text-muted);
+}
+
+/* --- Destinazioni e Schede (Glass Cards) --- */
+.dest-card {
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 0.8rem;
+    background: var(--glass-card);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 16px var(--glass-shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dest-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px var(--glass-shadow);
+}
+
+.dest-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.dest-nome {
+    flex: 1;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    text-decoration: none;
+}
+
+.dest-nome:hover {
+    color: var(--accent);
+}
+
+.dest-date {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* --- Attività e Liste --- */
+.lista-attivita {
+    list-style: none;
+    padding: 0;
+    margin: 0.6rem 0 0.4rem 0.25rem;
+}
+
+.attivita-voce {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    padding: 0.35rem 0.5rem;
+    border-bottom: 1px solid var(--glass-border);
+    color: var(--text-main);
+}
+
+.attivita-voce:last-child {
+    border-bottom: none;
+}
+
+/* --- Tabelle delle previsioni --- */
 table {
     border-collapse: collapse;
     width: 100%;
-    margin-top: 0.4rem;
-    font-size: 0.8rem;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px var(--glass-shadow);
+    border: 1px solid var(--glass-border);
 }
 
 th, td {
-    border: 1px solid #ccc;
-    padding: 0.25rem 0.4rem;
+    padding: 0.65rem 0.75rem;
     text-align: left;
+    border-bottom: 1px solid var(--glass-border);
 }
 
-th { background: #f0f0f0; }
-
-hr {
-    margin: 0.8rem 0;
-    border: none;
-    border-top: 1px solid #ddd;
+th {
+    background: var(--glass-border);
+    font-weight: 600;
+    color: var(--text-main);
 }
 
-/* --- Lista viaggi (index) --- */
+td {
+    background: var(--glass-card);
+    color: var(--text-main);
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+/* --- Liste Viaggi (Homepage) --- */
 .lista-viaggi {
     list-style: none;
     padding: 0;
-    margin: 0.8rem 0;
+    margin: 1rem 0;
 }
 
 .lista-viaggi li {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    padding: 0.4rem 0;
-    border-bottom: 1px solid #eee;
-    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    background: var(--glass-card);
+    transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
-.viaggio-date {
-    font-size: 0.82rem;
-    color: #666;
+.lista-viaggi li:hover {
+    transform: translateX(3px);
+    background-color: var(--glass-border);
 }
 
-.viaggio-autore {
+.lista-viaggi li a {
+    color: var(--text-main);
+    text-decoration: none;
+    font-weight: 600;
+    flex: 1;
+}
+
+/* --- Separatori e Notifiche --- */
+hr {
+    margin: 1.2rem 0;
+    border: none;
+    border-top: 1px solid var(--glass-border);
+}
+
+.messaggi {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--glass-panel);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 0.6rem 1.5rem;
+    border-radius: 30px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    z-index: 3000;
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+
+.istruzione {
+    color: var(--text-muted);
     font-size: 0.82rem;
-    color: #888;
-    font-style: italic;
 }
 
 .badge-condiviso {
-    display: inline-block;
     font-size: 0.75rem;
-    background: #e8f4fd;
-    color: #1a6fa8;
-    border: 1px solid #b3d7f0;
-    border-radius: 3px;
-    padding: 1px 6px;
+    background: rgba(82, 133, 99, 0.15);
+    color: var(--accent);
+    border: 1px solid var(--glass-border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-weight: 500;
+}
+
+.btn-elimina, .btn-elimina-att {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-weight: bold;
+    transition: color 0.2s ease;
+}
+
+.btn-elimina:hover, .btn-elimina-att:hover {
+    color: #cc4141;
+}
+
+/* Badge Tipologie Attività Corrette */
+.badge-tipo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #ffffff;
+    flex-shrink: 0;
+}
+.badge-hotel      { background: #3182ce; }
+.badge-ristorante { background: #dd6b20; }
+.badge-museo      { background: #805ad5; }
+.badge-attrazione { background: #d69e2e; }
+.badge-trasporto  { background: #4a5568; }
+.badge-generale   { background: #38a169; }
+
+/* --- Marcatori attività sulla mappa (Leaflet divIcon) --- */
+.marker-att {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;                /* Sovrascrive il padding enorme dei bottoni globali */
+    border-radius: 4px !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    color: #ffffff !important;
+    border: 1.5px solid #ffffff !important; /* Bordino bianco pulito ed elegante sopra le mappe */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    box-sizing: border-box !important;
+}
+
+/* Colori mappati e sincronizzati perfettamente con le classi .badge-tipo */
+.marker-hotel      { background: #3182ce !important; }
+.marker-ristorante { background: #dd6b20 !important; }
+.marker-museo      { background: #805ad5 !important; }
+.marker-attrazione { background: #d69e2e !important; }
+.marker-trasporto  { background: #4a5568 !important; }
+.marker-generale   { background: #38a169 !important; }
+.marker-temp       { background: #242424 !important; }
+
+/* --- Distanza e Tempi tra le Tratte (.distanza-tratta) --- */
+.distanza-tratta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    
+    /* Margini calcolati per unire visivamente le schede (.dest-card) */
+    margin: -0.3rem auto 0.7rem auto; 
+    padding: 0.4rem 1.2rem;
+    width: fit-content;
+    
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: var(--text-muted);
+    
+    /* Stile Liquid Glass coerente */
+    background: var(--glass-card);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: 0 4px 12px var(--glass-shadow);
+    
+    position: relative;
+    z-index: 5;
+    transition: all 0.25s ease;
+}
+
+/* Effetto al passaggio del mouse per renderlo interattivo */
+.distanza-tratta:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px var(--glass-shadow);
+}
+
+/* Stile opzionale quando la tratta è in fase di caricamento */
+.distanza-tratta:contains("Calcolo") {
+    font-style: italic;
+    opacity: 0.7;
 }

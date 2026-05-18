@@ -1,23 +1,47 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="it" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Travel Planner{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>
+        // Previene il flash di colore caricando il tema prima del rendering della pagina
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
     {% block head %}{% endblock %}
 </head>
 <body>
-    <nav>
-        <a href="{{ url_for('trips.index') }}">Travel Planner</a>
-        {% if session.get('utente_id') %}
-            <span>{{ session.get('utente_nome') }}</span>
-            <a href="{{ url_for('explore.search') }}">Esplora</a>
-            <a href="{{ url_for('auth.logout') }}">Esci</a>
-        {% else %}
-            <a href="{{ url_for('auth.login') }}">Accedi</a>
-            <a href="{{ url_for('auth.register') }}">Registrati</a>
-        {% endif %}
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="{{ url_for('trips.index') }}">Travel Planner</a>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('trips.index') }}" class="nav-item">Home</a>
+            <a href="{{ url_for('explore.search') }}" class="nav-item">Esplora</a>
+            
+            {% if session.get('utente_id') %}
+                <div class="user-dropdown-container">
+                    <button class="avatar-btn" id="avatarBtn" onclick="toggleDropdown()" aria-label="Menu utente">
+                        {{ session.get('utente_nome')[0] | upper if session.get('utente_nome') else 'U' }}
+                    </button>
+                    <div class="dropdown-menu" id="userDropdown">
+                        <div class="dropdown-info">
+                            <span class="user-name">{{ session.get('utente_nome') }}</span>
+                        </div>
+                        <button class="dropdown-action" onclick="toggleTheme()">
+                            <span id="themeToggleText">Modalità Scura</span>
+                        </button>
+                        <a href="{{ url_for('auth.logout') }}" class="dropdown-action logout-btn">Esci</a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="nav-auth-btn">Accedi</a>
+            {% endif %}
+        </div>
     </nav>
 
     <main>
@@ -34,6 +58,47 @@
         {% block content %}{% endblock %}
     </main>
 
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeButtonText(newTheme);
+        }
+
+        function updateThemeButtonText(theme) {
+            const themeText = document.getElementById('themeToggleText');
+            if (themeText) {
+                themeText.textContent = theme === 'dark' ? 'Modalità Chiara' : 'Modalità Scura';
+            }
+        }
+
+        // Chiude il menu se l'utente clicca fuori dall'avatar
+        window.onclick = function(event) {
+            if (!event.target.matches('.avatar-btn')) {
+                const dropdowns = document.getElementsByClassName("dropdown-menu");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    let openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+
+        // Sincronizza il testo del bottone all'avvio della pagina
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            updateThemeButtonText(currentTheme);
+        });
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
